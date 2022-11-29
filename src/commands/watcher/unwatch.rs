@@ -1,6 +1,9 @@
-use crate::util::{database, edit_reply, Context, Error};
+use crate::util::{check_permissions, database, edit_reply, Context, Error};
 use entity::sea_orm::ActiveModelTrait;
-use poise::{serenity_prelude::ChannelId, AutocompleteChoice};
+use poise::{
+    serenity_prelude::{ChannelId, Permissions},
+    AutocompleteChoice,
+};
 
 /// Disable a channel / role binding
 #[poise::command(
@@ -9,7 +12,7 @@ use poise::{serenity_prelude::ChannelId, AutocompleteChoice};
     ephemeral,
     guild_only,
     rename = "unwatch",
-    required_permissions = "ADMINISTRATOR"
+    // required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(
     ctx: Context<'_>,
@@ -17,6 +20,7 @@ pub async fn command(
     #[autocomplete = "unwatch_autocomplete"]
     channel: u64,
 ) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
     ctx.defer_response(true).await?;
     unwatch_save(ctx, channel).await?;
 

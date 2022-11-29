@@ -1,6 +1,6 @@
-use crate::util::{edit_reply, Context, Error};
+use crate::util::{check_permissions, edit_reply, Context, Error};
 use entity::sea_orm::{ActiveModelTrait, ColumnTrait, PaginatorTrait, QueryFilter};
-use poise::serenity_prelude::GuildChannel;
+use poise::serenity_prelude::{GuildChannel, Permissions};
 
 /// activate a channel with a certain role to add
 #[poise::command(
@@ -9,12 +9,13 @@ use poise::serenity_prelude::GuildChannel;
     ephemeral,
     guild_only,
     rename = "watch",
-    required_permissions = "ADMINISTRATOR"
+    // required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(
     ctx: Context<'_>,
     #[description = "channel to watch"] channel: GuildChannel,
 ) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
     ctx.defer_response(true).await?;
     let (updated, channels) = watch_save(ctx, channel.clone()).await?;
 

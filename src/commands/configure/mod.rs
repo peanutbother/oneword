@@ -1,4 +1,6 @@
-use crate::util::{Context, Error};
+use poise::serenity_prelude::Permissions;
+
+use crate::util::{check_permissions, Context, Error};
 
 mod mastodon;
 
@@ -7,9 +9,10 @@ mod mastodon;
     slash_command,
     category = "setup",
     ephemeral,
-    required_permissions = "ADMINISTRATOR",
     subcommands("mastodon::command")
+    // required_permissions = "ADMINISTRATOR",
 )]
-pub async fn configure(_: Context<'_>) -> Result<(), Error> {
+pub async fn configure(ctx: Context<'_>) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
     Ok(())
 }

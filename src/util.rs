@@ -121,3 +121,27 @@ pub fn into_application_ctx(ctx: PoiseContext) -> Context {
     };
     ctx
 }
+
+pub fn check_permissions(
+    ctx: Context<'_>,
+    required_permissions: poise::serenity_prelude::Permissions,
+) -> Result<(), Error> {
+    let permissions = ctx
+        .interaction
+        .member()
+        .unwrap()
+        .permissions
+        .expect("permission check cannot be run outside of interactions");
+
+    if permissions.bits() > required_permissions.bits()
+        && !ctx
+            .framework
+            .options
+            .owners
+            .contains(&ctx.interaction.user().id)
+    {
+        Err(Error::from("insufficient permissions!"))
+    } else {
+        Ok(())
+    }
+}

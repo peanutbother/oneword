@@ -1,5 +1,7 @@
 use entity::sea_orm::ActiveModelTrait;
+use poise::serenity_prelude::Permissions;
 
+use crate::util::check_permissions;
 // use crate::util::edit_reply;
 // use super::update;
 use crate::util::database;
@@ -18,6 +20,7 @@ use crate::util::Error;
     required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(ctx: Context<'_>) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
     ctx.defer_response(true).await?;
 
     let db = database(ctx);

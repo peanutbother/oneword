@@ -1,8 +1,10 @@
 use crate::{
     oauth::{common::OauthProvider, providers::MastodonProvider},
-    util::{database, delete_reply, oauth_safe, Context, Error},
+    util::{check_permissions, database, delete_reply, oauth_safe, Context, Error},
 };
-use poise::serenity_prelude::{ActionRowComponent, ButtonStyle, CreateComponents, Message};
+use poise::serenity_prelude::{
+    ActionRowComponent, ButtonStyle, CreateComponents, Message, Permissions,
+};
 
 /// publish bot for this server
 #[poise::command(
@@ -10,12 +12,13 @@ use poise::serenity_prelude::{ActionRowComponent, ButtonStyle, CreateComponents,
     ephemeral,
     guild_only,
     context_menu_command = "🐘 post on mastodon",
-    required_permissions = "MANAGE_MESSAGES"
+    // required_permissions = "MANAGE_MESSAGES"
 )]
 pub async fn publish(
     ctx: Context<'_>,
     #[description = "Story to publish (enter a link or ID)"] mut msg: Message,
 ) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::MANAGE_MESSAGES)?;
     let provider = ctx
         .data
         .oauth

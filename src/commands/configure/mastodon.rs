@@ -1,12 +1,12 @@
 use crate::{
     oauth::{common::OauthProvider, providers::MastodonProvider},
-    util::{database, edit_reply, guild_id, Context, Error},
+    util::{database, edit_reply, guild_id, Context, Error, check_permissions},
 };
 use entity::{
     prelude::Oauth,
     sea_orm::{ColumnTrait, QueryFilter},
 };
-use poise::serenity_prelude::ButtonStyle;
+use poise::serenity_prelude::{ButtonStyle, Permissions};
 use std::slice::Iter;
 
 /// Configure twitter integration
@@ -16,9 +16,11 @@ use std::slice::Iter;
     guild_only,
     category = "setup",
     rename = "mastodon",
-    required_permissions = "ADMINISTRATOR"
+    // required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(ctx: Context<'_>, #[description = "mastodon instance of user (default: mastodon.social)"] instance: Option<String>) -> Result<(), Error> {
+    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
+
     ctx.defer_response(true).await?;
     let db = database(ctx);
     let guild_id = guild_id(ctx);
