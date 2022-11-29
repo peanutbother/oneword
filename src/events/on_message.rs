@@ -5,6 +5,13 @@ use poise::serenity_prelude::{Context, Message};
 use regex::Regex;
 use std::collections::BTreeSet;
 
+lazy_static! {
+    static ref RE_W: Regex = Regex::new(r"(?m)\s").unwrap();
+    static ref RE_W_END: Regex = Regex::new(r"(?m)(\s)([!?.…])").unwrap();
+    static ref RE_W_COMMA: Regex = Regex::new(r"(?m)\s,").unwrap();
+    // static ref RE_END: Regex = Regex::new(r"(?m)^[!?.…]$").unwrap();
+}
+
 pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(), Error> {
     let db = data.database.get().expect("failed to connect to database");
 
@@ -12,7 +19,7 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
     if message.author.bot
         || guild_id.is_none()
         || !is_end_trigger(&message.content)
-        || !is_valid_content(&message.content)
+        || RE_W.find_iter(&message.content).count() > 1
     {
         return Ok(());
     }
@@ -35,17 +42,19 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
 
         if config.active {
             let retain_messages = config.retain_messages;
-            let config = config.find_related(entity::oauth::Entity).all(db).await?;
-            let config = config
-                .into_iter()
-                .filter(|c| c.active)
-                .collect::<Vec<entity::oauth::Model>>();
-
-            config
-                .iter()
-                .map(|c| c.name.clone())
-                .collect::<Vec<_>>()
-                .join(",");
+            // TODO implement multiple handlers except just mastodon
+            // get active provider configs
+            // let config = config
+            //     .find_related(entity::oauth::Entity)
+            //     .filter(entity::oauth::Column::Active.eq(true))
+            //     .all(db)
+            //     .await?;
+            // get provider names
+            // config
+            //     .iter()
+            //     .map(|c| c.name.clone())
+            //     .collect::<Vec<_>>()
+            //     .join(",");
 
             let messages = message
                 .channel_id
@@ -66,15 +75,9 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
                 .iter()
                 .map(|m| m.content.clone())
                 .collect::<Vec<_>>();
-
-            lazy_static! {
-                static ref RE_W: Regex = Regex::new(r"(?m)\s").unwrap();
-                static ref RE_W_END: Regex = Regex::new(r"(?m)(\s)([?|.|…|!])").unwrap();
-                static ref RE_W_COMMA: Regex = Regex::new(r"(?m)\s,").unwrap();
-                static ref RE_END: Regex = Regex::new(r"(?m)[?|.|…|!]").unwrap();
-            }
-
             participants.insert(message.author.id);
+            words.push(message.content.clone());
+
             let mut participants_users: Vec<String> = vec![];
             for participant in participants {
                 participants_users.push(participant.to_user(ctx).await.map_or_else(
@@ -82,31 +85,34 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
                     |u| format!("{}#{}", u.name, u.discriminator),
                 ));
             }
-            // let participants = participants.iter().map(async |p|)
-            let word = RE_W.replace(&message.content, " ");
-            let word = RE_W_END.replace(&word, "$2");
-            let word = RE_W_COMMA.replace(&word, ",");
-            words.push(format!(
-                "{}{word}",
-                if RE_END.is_match(&word) { "" } else { " " }
-            ));
-            let words = words
-                .iter()
-                .map(|word| format!("{}{word}", if RE_END.is_match(&word) { "" } else { " " }))
-                .collect::<Vec<_>>();
+
+            let mut words_sanitized: Vec<String> = vec![];
+            for word in words {
+                let mut word = word;
+                word = RE_W.replace(&word, " ").to_string();
+                word = RE_W_END.replace(&word, "$2").to_string();
+                word = RE_W_COMMA.replace(&word, ",").to_string();
+
+                // if word
+                words_sanitized.push(word);
+            }
 
             message
                 .channel_id
                 .send_message(ctx, |m| {
                     m.embed(|e| {
-                        e.description(words.join(""))
+                        e.description(words_sanitized.join(" "))
                             .fields(vec![
                                 (
                                     format!("Participants ({})", participants_users.len()),
                                     participants_users.join(", "),
                                     true,
                                 ),
-                                ("Word Count".to_owned(), words.len().to_string(), true),
+                                (
+                                    "Word Count".to_owned(),
+                                    words_sanitized.len().to_string(),
+                                    true,
+                                ),
                             ])
                             .footer(|f| {
                                 f.text(format!(
@@ -152,7 +158,7 @@ fn collect_messages(messages: &Vec<Message>, before: i64) -> Vec<Message> {
                 None
             }
         })
-        .filter(|m| is_valid_content(&m.content))
+        .filter(|m| RE_W.find_iter(&m.content).count() < 2)
         .collect();
     // collected.reverse();
 
@@ -166,13 +172,6 @@ fn collect_messages(messages: &Vec<Message>, before: i64) -> Vec<Message> {
     }
     // collected.reverse();
     collected
-}
-
-fn is_valid_content(content: &String) -> bool {
-    lazy_static! {
-        static ref RE_W: Regex = Regex::new(r"(?m)\s").unwrap();
-    }
-    RE_W.find_iter(&content).count() < 2
 }
 
 fn is_end_trigger(content: &String) -> bool {
