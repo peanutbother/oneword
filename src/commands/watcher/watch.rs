@@ -7,6 +7,7 @@ use poise::serenity_prelude::GuildChannel;
     slash_command,
     category = "setup",
     ephemeral,
+    guild_only,
     rename = "watch",
     required_permissions = "ADMINISTRATOR"
 )]

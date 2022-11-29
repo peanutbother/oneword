@@ -12,8 +12,9 @@ use std::slice::Iter;
 /// Configure twitter integration
 #[poise::command(
     slash_command,
-    category = "setup",
     ephemeral,
+    guild_only,
+    category = "setup",
     rename = "mastodon",
     required_permissions = "ADMINISTRATOR"
 )]

@@ -11,8 +11,9 @@ use crate::util::Error;
 /// disable bot for this server
 #[poise::command(
     slash_command,
-    category = "setup",
     ephemeral,
+    guild_only,
+    category = "setup",
     rename = "deactivate",
     required_permissions = "ADMINISTRATOR"
 )]

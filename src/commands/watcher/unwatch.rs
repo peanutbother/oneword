@@ -7,6 +7,7 @@ use poise::{serenity_prelude::ChannelId, AutocompleteChoice};
     slash_command,
     category = "setup",
     ephemeral,
+    guild_only,
     rename = "unwatch",
     required_permissions = "ADMINISTRATOR"
 )]

@@ -11,8 +11,9 @@ use crate::util::Error;
 /// activate bot for this server
 #[poise::command(
     slash_command,
-    category = "setup",
     ephemeral,
+    guild_only,
+    category = "setup",
     rename = "activate",
     required_permissions = "ADMINISTRATOR"
 )]

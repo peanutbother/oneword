@@ -8,6 +8,7 @@ use poise::serenity_prelude::{ActionRowComponent, ButtonStyle, CreateComponents,
 #[poise::command(
     slash_command,
     ephemeral,
+    guild_only,
     context_menu_command = "🐘 post on mastodon",
     required_permissions = "MANAGE_MESSAGES"
 )]
