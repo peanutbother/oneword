@@ -121,11 +121,10 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
                                     "Story Messages will {}be deleted | ended by {}",
                                     if retain_messages { "not " } else { "" },
                                     {
-                                        let user = &messages
-                                            .last()
-                                            .expect("failed to get last user")
-                                            .author;
-                                        format!("{}#{}", user.name, user.discriminator)
+                                        format!(
+                                            "{}#{}",
+                                            &message.author.name, &message.author.discriminator
+                                        )
                                     }
                                 ))
                                 .icon_url(
