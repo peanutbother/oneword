@@ -1,0 +1,13 @@
+[package]
+name = "migration"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "migration"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { version = "1.22.0", features = ["macros"] }
+sea-orm-migration = { version = "0.10.3", features = ["runtime-tokio-rustls", "sqlx-sqlite"] }
