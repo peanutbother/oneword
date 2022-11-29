@@ -80,10 +80,12 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
 
             let mut participants_users: Vec<String> = vec![];
             for participant in participants {
-                participants_users.push(participant.to_user(ctx).await.map_or_else(
-                    |_| "<unknown>".to_owned(),
-                    |u| format!("{}#{}", u.name, u.discriminator),
-                ));
+                participants_users.push(
+                    participant
+                        .to_user(ctx)
+                        .await
+                        .map_or_else(|_| "<unknown>".to_owned(), |u| format!("<@{}>", u.id)),
+                );
             }
 
             let mut words_sanitized: Vec<String> = vec![];
