@@ -74,14 +74,7 @@ pub async fn oauth_callback(
                     e.to_string(), /* .into() */
                 )
             })?;
-        let old = oauth_safe(db, guild, "mastodon".to_owned())
-            .await
-            .map_err(|_| {
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "failed to update token database".to_owned(),
-                )
-            })?;
+        let old = oauth_safe(db, guild, "mastodon".to_owned()).await.ok();
 
         let ResponseToken {
             access_token: token,
@@ -108,12 +101,14 @@ pub async fn oauth_callback(
                 )
             })?;
 
-        old.delete(db).await.map_err(|_| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "failed to delete old token from database".to_owned(),
-            )
-        })?;
+        if old.is_some() {
+            old.unwrap().delete(db).await.map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "f+Failed to delete old token from database".to_owned(),
+                )
+            })?;
+        }
 
         entity::oauth::ActiveModel::create_oauth(
             guild,
