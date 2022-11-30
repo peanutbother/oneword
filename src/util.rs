@@ -133,7 +133,7 @@ pub fn check_permissions(
         .permissions
         .expect("permission check cannot be run outside of interactions");
 
-    if permissions.bits() > required_permissions.bits()
+    if !(required_permissions - permissions).is_empty()
         && !ctx
             .framework
             .options
