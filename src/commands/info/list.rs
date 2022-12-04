@@ -1,12 +1,21 @@
-use crate::util::{database, edit_reply, guild_id, Context, Error};
+use crate::{
+    defer_ephemeral,
+    util::{database, edit_reply, guild_id, Context, Error},
+};
 use poise::serenity_prelude::CreateEmbed;
 
 /// List every active channel
-#[poise::command(slash_command, category = "info", ephemeral, rename = "list")]
+#[poise::command(
+    slash_command,
+    ephemeral,
+    guild_only,
+    category = "info",
+    rename = "list"
+)]
 pub async fn command(ctx: Context<'_>) -> Result<(), Error> {
-    let db = database(ctx);
-    ctx.defer_response(true).await?;
+    defer_ephemeral!(ctx);
 
+    let db = database(ctx);
     let handles = entity::channel::Entity::find_by_guild(guild_id(ctx))
         .all(db)
         .await?;

@@ -1,13 +1,13 @@
 use crate::{
     oauth::{common::OauthProvider, providers::MastodonProvider},
-    util::{database, edit_reply, guild_id, Context, Error, check_permissions},
+    util::{database, edit_reply, guild_id, Context, Error, check_permissions}, require_admin, defer_ephemeral,
 };
 use entity::{
     prelude::Oauth,
     sea_orm::{ColumnTrait, QueryFilter},
 };
-use poise::serenity_prelude::{ButtonStyle, Permissions};
-use std::slice::Iter;
+use poise::serenity_prelude::{ButtonStyle, Message};
+use std::{slice::Iter};
 
 /// Configure twitter integration
 #[poise::command(
@@ -19,9 +19,9 @@ use std::slice::Iter;
     // required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(ctx: Context<'_>, #[description = "mastodon instance of user (default: mastodon.social)"] instance: Option<String>) -> Result<(), Error> {
-    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
-
-    ctx.defer_response(true).await?;
+    require_admin!(ctx);
+    defer_ephemeral!(ctx);
+    
     let db = database(ctx);
     let guild_id = guild_id(ctx);
     let url = MastodonProvider::get_url(Some(|url| {
@@ -38,7 +38,7 @@ pub async fn command(ctx: Context<'_>, #[description = "mastodon instance of use
     let already_configured = oauth_config.is_some();
     let requirements = MastodonProvider::get_requirements();
 
-    edit_reply(ctx, |b| {
+    let message = edit_reply(ctx, |b| {
         b
             .embed(|e| {
                 e
@@ -94,6 +94,8 @@ pub async fn command(ctx: Context<'_>, #[description = "mastodon instance of use
     })
     .await?;
 
+    await_interaction(ctx, message).await?;
+
     Ok(())
 }
 
@@ -103,4 +105,9 @@ fn format_iter(iter: Iter<(String, String)>, ok: bool) -> String {
     })
     .collect::<Vec<String>>()
     .join("\n")
+}
+
+async fn await_interaction<'a>(_ctx:Context<'a>, _message: Message) -> Result<(), Error> {
+    
+    Ok(())
 }

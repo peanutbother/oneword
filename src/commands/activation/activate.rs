@@ -1,14 +1,12 @@
-use entity::sea_orm::ActiveModelTrait;
-use poise::serenity_prelude::Permissions;
-
+use crate::defer_ephemeral;
+use crate::require_admin;
 use crate::util::check_permissions;
-// use crate::util::edit_reply;
-// use super::update;
 use crate::util::database;
 use crate::util::edit_reply;
 use crate::util::guild_safe;
 use crate::util::Context;
 use crate::util::Error;
+use entity::sea_orm::ActiveModelTrait;
 
 /// activate bot for this server
 #[poise::command(
@@ -20,8 +18,8 @@ use crate::util::Error;
     // required_permissions = "ADMINISTRATOR"
 )]
 pub async fn command(ctx: Context<'_>) -> Result<(), Error> {
-    check_permissions(ctx, Permissions::ADMINISTRATOR)?;
-    ctx.defer_response(true).await?;
+    require_admin!(ctx);
+    defer_ephemeral!(ctx);
 
     let db = database(ctx);
     let guild_id = ctx

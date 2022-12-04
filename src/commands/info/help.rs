@@ -1,17 +1,18 @@
 use crate::constants;
+use crate::defer_ephemeral;
 use crate::util::Context;
 use crate::util::Error;
 use poise::samples::HelpConfiguration;
 
 /// Display bot help
-#[poise::command(slash_command, category = "info", ephemeral, rename = "help")]
+#[poise::command(slash_command, ephemeral, category = "info", rename = "help")]
 pub async fn command(
     ctx: Context<'_>,
     #[description = "get help for a specific command"]
     #[autocomplete = "poise::builtins::autocomplete_command"]
     command: Option<String>,
 ) -> Result<(), Error> {
-    ctx.defer_response(true).await?;
+    defer_ephemeral!(ctx);
 
     let footer_text = format!("{} v{}", constants::NAME, constants::VERSION);
     let help_config = HelpConfiguration {

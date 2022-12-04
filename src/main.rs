@@ -4,6 +4,7 @@ mod constants;
 mod db;
 mod events;
 mod logger;
+mod macros;
 mod migration;
 mod oauth;
 mod server;

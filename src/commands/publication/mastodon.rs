@@ -1,24 +1,27 @@
 use crate::{
+    defer_ephemeral,
     oauth::{common::OauthProvider, providers::MastodonProvider},
+    require_mod,
     util::{check_permissions, database, delete_reply, oauth_safe, Context, Error},
 };
-use poise::serenity_prelude::{
-    ActionRowComponent, ButtonStyle, CreateComponents, Message, Permissions,
-};
+use poise::serenity_prelude::{ActionRowComponent, ButtonStyle, CreateComponents, Message};
 
-/// publish bot for this server
+/// Publish OneWord story to Mastodon
 #[poise::command(
     slash_command,
     ephemeral,
     guild_only,
+    rename = "mastodon",
     context_menu_command = "🐘 post on mastodon",
     // required_permissions = "MANAGE_MESSAGES"
 )]
-pub async fn publish(
+pub async fn command(
     ctx: Context<'_>,
     #[description = "Story to publish (enter a link or ID)"] mut msg: Message,
 ) -> Result<(), Error> {
-    check_permissions(ctx, Permissions::MANAGE_MESSAGES)?;
+    require_mod!(ctx);
+    defer_ephemeral!(ctx);
+
     let provider = ctx
         .data
         .oauth
@@ -29,8 +32,6 @@ pub async fn publish(
         .guild_id()
         .expect("failed to retrieve guild");
     let db = database(ctx);
-
-    ctx.defer_response(true).await?;
 
     if !msg.author.id.eq(&ctx.framework.bot_id) || msg.embeds.is_empty() {
         return Err(Error::from(
