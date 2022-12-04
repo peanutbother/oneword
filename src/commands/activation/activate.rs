@@ -8,7 +8,7 @@ use crate::util::Context;
 use crate::util::Error;
 use entity::sea_orm::ActiveModelTrait;
 
-/// activate bot for this server
+/// Activate bot for this server
 #[poise::command(
     slash_command,
     ephemeral,

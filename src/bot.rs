@@ -21,6 +21,7 @@ pub fn init(
         commands: commands::prepare(),
         pre_command: |ctx| Box::pin(pre_command(ctx)),
         event_handler: |ctx, event, _framework, data| Box::pin(events::handle(ctx, event, data)),
+        skip_checks_for_owners: true,
         ..Default::default()
     };
 

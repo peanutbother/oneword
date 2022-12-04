@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 env_logger = "0.10.0"
 log = "0.4.17"
-poise = "0.5.0"
+poise = { git = "https://github.com/serenity-rs/poise", branch = "develop" }
 tokio = { version = "1.22.0", features = ["tokio-macros", "rt-multi-thread"] }
 migration = { path = "./migration" }
 entity = { path = "./entity" }

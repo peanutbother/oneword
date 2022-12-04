@@ -5,7 +5,7 @@ use crate::{
 use entity::sea_orm::{ActiveModelTrait, ColumnTrait, PaginatorTrait, QueryFilter};
 use poise::serenity_prelude::GuildChannel;
 
-/// activate a channel with a certain role to add
+/// Activate a channel for OneWord to look after
 #[poise::command(
     slash_command,
     ephemeral,

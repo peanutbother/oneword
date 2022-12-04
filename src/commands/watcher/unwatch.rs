@@ -5,7 +5,7 @@ use crate::{
 use entity::sea_orm::ActiveModelTrait;
 use poise::{serenity_prelude::ChannelId, AutocompleteChoice};
 
-/// Disable a channel / role binding
+/// Disable a channel for OneWord to look after
 #[poise::command(
     slash_command,
     ephemeral,
