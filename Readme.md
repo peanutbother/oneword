@@ -31,13 +31,19 @@ You can `/unwatch` this channel / role later.
 To make this bot active you also need to `/activate` it in order for it to actually watch the channels you set up.
 You can `/deactivate` the bot later if you pause it, or kick it if you no longer wish to use it.
 
+## OAuth
+
+This bot allows for oauth-enabled services like mastodon to authenticate and use your credentials to post either on your behalf or on a dedicated bot account. You can use this feature by right-clicking on a oneword summary, then click on `🐘 post on mastodon` in the submenu. This will post the story to your configured account.
+
+To configure the account use `/configure mastodon`.
+
 ## Development / Deployment
 
 This bot is running inside docker and assumes certain environment variables to be set to function properly.
 
 - TZ: defaults to `Etc/Utc`, a timezone to create proper timestamps in logs and some discord api
 - DATABASE_URL: defaults to `sqlite:/data/database.sqlite`, a `seaorm sqlite` compatible file url
-- RUST_LOG: optinal - overrided to `error,clever_roles=info` in production, allows you to set more verbose logging if needed
+- RUST_LOG: optinal - overrided to `error,oneword=info` in production, allows you to set more verbose logging if needed
 - DISCORD_TOKEN: required, your discord api token
 
 To deploy the container either pull `bricksoft/oneword-dc` or build it locally by `docker build .` and then run it:
