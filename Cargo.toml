@@ -1,25 +1,23 @@
 [package]
 name = "oneword"
-repository = "https://github.com/bricksoft/oneword"
+repository = "https://github.com/peanutbother/oneword"
 version = "0.2.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-env_logger = "0.10.0"
-log = "0.4.17"
-poise = { git = "https://github.com/serenity-rs/poise", branch = "develop" }
-tokio = { version = "1.22.0", features = ["tokio-macros", "rt-multi-thread"] }
-migration = { path = "./migration" }
+axum = { version = "0.6.10", features = ["macros"] }
 entity = { path = "./entity" }
-serde = { version = "1.0.147", features = ["derive"] }
-serde_json = "1.0.89"
-axum = { version = "0.6.0", features = ["macros"] }
-hyper = { version = "0.14.23", features = ["tcp"] }
-ureq = { version = "2.5.0", features = ["json", "serde"] }
-oauth2 = "4.3.0"
-regex = "1.7.0"
+env_logger = "0.10.0"
+hyper = { version = "0.14.25", features = ["tcp"] }
 lazy_static = "1.4.0"
-serde_with = { version = "2.1.0", features = ["json"] }
-reqwest = { version = "0.11.13", features = ["json"] }
+log = "0.4.17"
+migration = { path = "./migration" }
+oauth2 = "4.3.0"
+poise = { git = "https://github.com/serenity-rs/poise", branch = "develop" }
+regex = "1.7.1"
+reqwest = { version = "0.11.14", features = ["json"] }
+serde = { version = "1.0.154", features = ["derive"] }
+serde_json = "1.0.94"
+serde_with = { version = "2.3.1", features = ["json"] }
+tokio = { version = "1.26.0", features = ["tokio-macros", "rt-multi-thread"] }
+ureq = { version = "2.6.2", features = ["json", "serde"] }
