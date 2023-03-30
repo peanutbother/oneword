@@ -9,7 +9,7 @@ use entity::{
 use poise::serenity_prelude::{ButtonStyle, Message};
 use std::{slice::Iter};
 
-/// Configure twitter integration
+/// Configure mastodon integration
 #[poise::command(
     slash_command,
     ephemeral,
