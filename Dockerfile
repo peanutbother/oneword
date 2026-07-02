@@ -10,6 +10,9 @@ RUN cargo install cargo-chef
 COPY --from=planner /build/recipe.json recipe.json
 COPY --from=planner /build/Cargo.lock Cargo.lock
 COPY --from=planner /build/Cargo.toml Cargo.toml
+COPY --from=planner /build/migration/Cargo.lock ./migration/Cargo.lock
+COPY --from=planner /build/migration/Cargo.toml ./migration/Cargo.toml
+COPY --from=planner /entity/Cargo.toml ./entity/Cargo.toml
 RUN cargo chef cook --release --recipe-path recipe.json
 
 

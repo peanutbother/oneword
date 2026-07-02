@@ -4,6 +4,7 @@ pub use entity::DatabaseConnection;
 use tokio::sync::OnceCell;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum DatabaseError {
     MigrationError(migration::DbErr),
     EnvParseError(Error),
