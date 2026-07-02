@@ -8,9 +8,8 @@ FROM rust:latest AS cacher
 WORKDIR /build
 RUN cargo install cargo-chef
 COPY --from=planner /build/recipe.json recipe.json
-COPY Cargo.toml ./Cargo.toml
-COPY entity/Cargo.toml ./entity/Cargo.toml
-COPY migration/Cargo.toml ./migration/Cargo.toml
+COPY --from=planner /build/Cargo.lock Cargo.lock
+COPY --from=planner /build/Cargo.toml Cargo.toml
 RUN cargo chef cook --release --recipe-path recipe.json
 
 
