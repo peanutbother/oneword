@@ -16,6 +16,7 @@ RUN mkdir -p src entity/src migration/src && \
     touch migration/src/lib.rs
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
+RUN touch entity/src/lib.rs migration/src/lib.rs src/main.rs
 RUN cargo build --release
 
 FROM gcr.io/distroless/cc AS runtime
