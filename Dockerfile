@@ -1,20 +1,24 @@
-FROM rust:latest AS planner
-WORKDIR /build
+FROM docker.io/rust:1-alpine AS chef
+RUN apk add --no-cache \
+    # Required for cargo-chef
+    musl-dev openssl-dev \
+    # required for openSSL linking
+    openssl-libs-static \
+    # Required for TLS
+    ca-certificates \
+    && update-ca-certificates
 RUN cargo install cargo-chef
+WORKDIR /build
+
+FROM chef AS planner
+WORKDIR /build
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM rust:latest AS cacher
+FROM chef AS builder
 WORKDIR /build
-RUN cargo install cargo-chef
 COPY --from=planner /build/recipe.json recipe.json
-COPY . .
-RUN cargo chef cook --release --recipe-path recipe.json
-
-
-FROM rust:latest AS builder
-WORKDIR /build
-COPY --from=cacher /build/target target
+RUN cargo chef cook --bin service1_api --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
