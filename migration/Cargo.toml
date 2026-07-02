@@ -8,6 +8,10 @@ publish = false
 name = "migration"
 path = "src/lib.rs"
 
+[[bin]]
+name = "oneword-migrate"
+path = "src/main.rs"
+
 [dependencies]
 sea-orm-migration = { version = "1.1.20", features = [
     "runtime-tokio-rustls",

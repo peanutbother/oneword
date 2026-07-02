@@ -4,6 +4,10 @@ repository = "https://github.com/peanutbother/oneword"
 version = "0.3.0"
 edition = "2021"
 
+[[bin]]
+name = "oneword"
+path = "src/main.rs"
+
 [dependencies]
 axum = { version = "0.8.9", features = ["macros"] }
 entity = { path = "./entity" }
