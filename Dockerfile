@@ -8,18 +8,14 @@ FROM rust:latest AS cacher
 WORKDIR /build
 RUN cargo install cargo-chef
 COPY --from=planner /build/recipe.json recipe.json
-COPY --from=planner /build/Cargo.lock Cargo.lock
-COPY --from=planner /build/Cargo.toml Cargo.toml
-COPY --from=planner /build/migration/Cargo.lock ./migration/Cargo.lock
-COPY --from=planner /build/migration/Cargo.toml ./migration/Cargo.toml
-COPY --from=planner /build/entity/Cargo.toml ./entity/Cargo.toml
+COPY . .
 RUN cargo chef cook --release --recipe-path recipe.json
 
 
 FROM rust:latest AS builder
 WORKDIR /build
-COPY . .
 COPY --from=cacher /build/target target
+COPY . .
 RUN cargo build --release
 
 FROM gcr.io/distroless/cc AS runtime
