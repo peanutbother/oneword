@@ -1,8 +1,6 @@
-use axum::{async_trait, Router};
-
 use crate::util::{has_env, Error};
+use axum::Router;
 
-#[async_trait]
 pub trait OauthProvider<T> {
     fn get_url<F: FnOnce(String) -> String>(f: Option<F>) -> Option<String>;
     fn get_requirements() -> ProviderRequirements;

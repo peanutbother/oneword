@@ -5,19 +5,19 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.6.10", features = ["macros"] }
+axum = { version = "0.8.9", features = ["macros"] }
 entity = { path = "./entity" }
-env_logger = "0.10.0"
-hyper = { version = "0.14.25", features = ["tcp"] }
-lazy_static = "1.4.0"
-log = "0.4.17"
+env_logger = "0.11.11"
+hyper = "1.10.1"
+lazy_static = "1.5.0"
+log = "0.4.33"
 migration = { path = "./migration" }
-oauth2 = "4.3.0"
-poise = { git = "https://github.com/serenity-rs/poise", branch = "develop" }
-regex = "1.7.1"
-reqwest = { version = "0.11.14", features = ["json"] }
-serde = { version = "1.0.154", features = ["derive"] }
-serde_json = "1.0.94"
-serde_with = { version = "2.3.1", features = ["json"] }
-tokio = { version = "1.26.0", features = ["tokio-macros", "rt-multi-thread"] }
-ureq = { version = "2.6.2", features = ["json", "serde"] }
+oauth2 = "5.0.0"
+poise = { version = "0.6.2", features = ["collector"] }
+regex = "1.12.4"
+reqwest = { version = "0.13.4", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+serde_with = { version = "3.21.0", features = ["json"] }
+tokio = { version = "1.52.3", features = ["tokio-macros", "rt-multi-thread"] }
+ureq = { version = "3.3.0", features = ["json"] }

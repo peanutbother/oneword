@@ -1,10 +1,12 @@
 use crate::{
-    defer_ephemeral,
+    database, defer_ephemeral,
     oauth::{common::OauthProvider, providers::MastodonProvider},
     require_mod,
-    util::{check_permissions, database, delete_reply, oauth_safe, Context, Error},
+    util::{check_permissions, delete_reply, oauth_safe, Context, Error},
 };
-use poise::serenity_prelude::{ActionRowComponent, ButtonStyle, CreateComponents, Message};
+use poise::serenity_prelude::{
+    ActionRowComponent, CreateActionRow, CreateButton, EditMessage, Message,
+};
 
 /// Publish OneWord story to Mastodon
 #[poise::command(
@@ -29,9 +31,10 @@ pub async fn command(
         .expect("failed to retrieve mastodon provider");
     let guild_id = ctx
         .interaction
-        .guild_id()
+        .guild_id
+        .as_ref()
         .expect("failed to retrieve guild");
-    let db = database(ctx);
+    let db = database!(ctx);
 
     if !msg.author.id.eq(&ctx.framework.bot_id) || msg.embeds.is_empty() {
         return Err(Error::from(
@@ -39,7 +42,7 @@ pub async fn command(
         ));
     }
 
-    let oauth = oauth_safe(db, guild_id.0, "mastodon".to_owned()).await;
+    let oauth = oauth_safe(db, guild_id.get(), "mastodon".to_owned()).await;
     if provider.has_missing || oauth.is_err() {
         return Err(Error::from("Mastodon is currently not configured!"));
     }
@@ -49,7 +52,6 @@ pub async fn command(
         return Err(Error::from("Mastodon is currently disabled!"));
     }
 
-    let mut cc = CreateComponents(vec![]);
     let components = &msg.components;
     if !components.is_empty() {
         if let ActionRowComponent::Button(b) = &components[0].components[0] {
@@ -66,16 +68,13 @@ pub async fn command(
             "Failed to publish to mastodon!"
         })?;
 
-    cc.create_action_row(|r| {
-        r.create_button(|b| {
-            b.label("🐘 mastodon".to_owned())
-                .style(ButtonStyle::Link)
-                .url(url)
-        })
-    });
-
-    msg.edit(&ctx.serenity_context, |m| m.set_components(cc))
-        .await?;
+    msg.edit(
+        &ctx.serenity_context,
+        EditMessage::new().components(vec![CreateActionRow::Buttons(vec![
+            CreateButton::new_link(url).label("🐘 mastodon"),
+        ])]),
+    )
+    .await?;
 
     delete_reply(ctx).await?;
 

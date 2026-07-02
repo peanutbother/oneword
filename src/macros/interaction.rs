@@ -1,14 +1,14 @@
 #[macro_export]
 macro_rules! require_admin {
     ($ctx: ident) => {
-        check_permissions($ctx, poise::serenity_prelude::Permissions::ADMINISTRATOR)?
+        check_permissions(&$ctx, poise::serenity_prelude::Permissions::ADMINISTRATOR)?
     };
 }
 
 #[macro_export]
 macro_rules! require_mod {
     ($ctx: ident) => {
-        check_permissions($ctx, poise::serenity_prelude::Permissions::MANAGE_MESSAGES)?
+        check_permissions(&$ctx, poise::serenity_prelude::Permissions::MANAGE_MESSAGES)?
     };
 }
 
@@ -16,5 +16,12 @@ macro_rules! require_mod {
 macro_rules! defer_ephemeral {
     ($ctx: ident) => {
         $ctx.defer_response(true).await?
+    };
+}
+
+#[macro_export]
+macro_rules! database {
+    ($ctx: ident) => {
+        $crate::util::database(&$ctx)
     };
 }

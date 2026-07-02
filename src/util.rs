@@ -2,10 +2,7 @@ use entity::{
     sea_orm::{ColumnTrait, QueryFilter},
     DatabaseConnection,
 };
-use poise::{
-    serenity_prelude::{CreateInteractionResponseFollowup, Message},
-    ApplicationContext,
-};
+use poise::ApplicationContext;
 use std::str::FromStr;
 use tokio::sync::OnceCell;
 
@@ -38,56 +35,37 @@ pub struct Data {
     pub oauth: OauthRequirements,
 }
 
-pub async fn edit_reply<'a, F>(ctx: Context<'_>, b: F) -> Result<Message, Error>
-where
-    for<'b> F: FnOnce(
-        &'b mut CreateInteractionResponseFollowup<'a>,
-    ) -> &'b mut CreateInteractionResponseFollowup<'a>,
-{
-    let interaction = match ctx.interaction {
-        poise::ApplicationCommandOrAutocompleteInteraction::ApplicationCommand(interaction) => {
-            interaction
-        }
-        poise::ApplicationCommandOrAutocompleteInteraction::Autocomplete(_) => {
-            panic!("cannot edit in autocomplete context!")
-        }
-    };
-
-    return interaction
-        .create_followup_message(ctx.serenity_context.http.clone(), b)
-        .await
-        .map_err(|err| err.into());
-}
-
 pub async fn delete_reply<'a>(ctx: Context<'_>) -> Result<(), Error> {
-    let interaction = match ctx.interaction {
-        poise::ApplicationCommandOrAutocompleteInteraction::ApplicationCommand(interaction) => {
-            interaction
-        }
-        poise::ApplicationCommandOrAutocompleteInteraction::Autocomplete(_) => {
-            panic!("cannot edit in autocomplete context!")
-        }
-    };
+    // let interaction = match ctx.interaction {
+    //     poise::ApplicationCommandOrAutocompleteInteraction::ApplicationCommand(interaction) => {
+    //         interaction
+    //     }
+    //     poise::ApplicationCommandOrAutocompleteInteraction::Autocomplete(_) => {
+    //         panic!("cannot edit in autocomplete context!")
+    //     }
+    // };
 
-    interaction
-        .delete_original_interaction_response(ctx.serenity_context.http.clone())
-        .await?;
+    ctx.interaction.delete_response(ctx).await?;
+
+    // interaction
+    //     .delete_original_interaction_response(ctx.serenity_context.http.clone())
+    //     .await?;
 
     Ok(())
 }
 
-pub fn database(ctx: Context<'_>) -> &'_ DatabaseConnection {
+pub fn database<'a>(ctx: &'a Context<'a>) -> &'a DatabaseConnection {
     ctx.data
         .database
         .get()
         .expect("failed to retrieve database connection")
 }
 
-pub fn guild_id(ctx: Context<'_>) -> u64 {
+pub fn guild_id(ctx: &Context<'_>) -> u64 {
     ctx.interaction
-        .guild_id()
+        .guild_id
         .expect("this command cannot be run outside of guilds")
-        .0
+        .get()
 }
 
 #[allow(unused)]
@@ -123,12 +101,13 @@ pub fn into_application_ctx(ctx: PoiseContext) -> Context {
 }
 
 pub fn check_permissions(
-    ctx: Context<'_>,
+    ctx: &Context<'_>,
     required_permissions: poise::serenity_prelude::Permissions,
 ) -> Result<(), Error> {
     let permissions = ctx
         .interaction
-        .member()
+        .member
+        .as_ref()
         .unwrap()
         .permissions
         .expect("permission check cannot be run outside of interactions");
@@ -138,7 +117,7 @@ pub fn check_permissions(
             .framework
             .options
             .owners
-            .contains(&ctx.interaction.user().id)
+            .contains(&ctx.interaction.user.id)
     {
         Err(Error::from("insufficient permissions!"))
     } else {

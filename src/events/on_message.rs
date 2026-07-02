@@ -1,7 +1,12 @@
-use crate::util::{Data, Error};
-use entity::sea_orm::{ColumnTrait, ModelTrait, QueryFilter};
+use crate::util::{guild_safe, Data, Error};
+use entity::{
+    guild::Model,
+    sea_orm::{ColumnTrait, ModelTrait, QueryFilter},
+};
 use lazy_static::lazy_static;
-use poise::serenity_prelude::{Context, Message};
+use poise::serenity_prelude::{
+    Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GetMessages, Message,
+};
 use regex::Regex;
 use std::collections::BTreeSet;
 
@@ -9,7 +14,6 @@ lazy_static! {
     static ref RE_W: Regex = Regex::new(r"(?m)\s").unwrap();
     static ref RE_W_END: Regex = Regex::new(r"(?m)(\s)([!?.…])").unwrap();
     static ref RE_W_COMMA: Regex = Regex::new(r"(?m)\s,").unwrap();
-    // static ref RE_END: Regex = Regex::new(r"(?m)^[!?.…]$").unwrap();
 }
 
 pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(), Error> {
@@ -24,8 +28,8 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
         return Ok(());
     }
 
-    let guild_id = guild_id.unwrap().0;
-    let channel_id = message.channel_id.0;
+    let guild_id = guild_id.unwrap().get();
+    let channel_id = message.channel_id.get();
     let config = entity::channel::Entity::find_by_channel(channel_id)
         .filter(entity::channel::Column::GuildId.eq(guild_id))
         .one(db)
@@ -58,7 +62,7 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
 
             let messages = message
                 .channel_id
-                .messages(ctx, |m| m.before(message.id).limit(100))
+                .messages(ctx, GetMessages::new().before(message.id).limit(100))
                 .await?;
 
             let messages = collect_messages(&messages, message.timestamp.timestamp());
@@ -101,9 +105,11 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
 
             message
                 .channel_id
-                .send_message(ctx, |m| {
-                    m.embed(|e| {
-                        e.description(words_sanitized.join(" "))
+                .send_message(
+                    ctx,
+                    CreateMessage::new().embed(
+                        CreateEmbed::new()
+                            .description(words_sanitized.join(" "))
                             .fields(vec![
                                 (
                                     format!("Participants ({})", participants_users.len()),
@@ -116,25 +122,21 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
                                     true,
                                 ),
                             ])
-                            .footer(|f| {
-                                f.text(format!(
+                            .footer(
+                                CreateEmbedFooter::new(format!(
                                     "Story Messages will {}be deleted | ended by {}",
                                     if retain_messages { "not " } else { "" },
-                                    {
-                                        format!(
-                                            "{}#{}",
-                                            &message.author.name, &message.author.discriminator
-                                        )
+                                    message.author.display_name()
                                     }
                                 ))
                                 .icon_url(
                                     message.author.avatar_url().unwrap_or_else(|| {
                                         ctx.cache.current_user().default_avatar_url()
                                     }),
-                                )
-                            })
-                    })
-                })
+                                ),
+                            ),
+                    ),
+                )
                 .await?;
             if !retain_messages {
                 for message in messages {

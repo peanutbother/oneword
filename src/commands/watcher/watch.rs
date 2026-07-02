@@ -1,9 +1,9 @@
 use crate::{
     defer_ephemeral, require_admin,
-    util::{check_permissions, edit_reply, Context, Error},
+    util::{check_permissions, Context, Error},
 };
 use entity::sea_orm::{ActiveModelTrait, ColumnTrait, PaginatorTrait, QueryFilter};
-use poise::serenity_prelude::GuildChannel;
+use poise::serenity_prelude::{CreateEmbed, EditInteractionResponse, GuildChannel};
 
 /// Activate a channel for OneWord to look after
 #[poise::command(
@@ -25,26 +25,29 @@ pub async fn command(
 
     let (updated, channels) = watch_save(ctx, channel.clone()).await?;
 
-    edit_reply(ctx, |b| {
-        b.embed(|e| {
-            e.title(if updated {
-                "successfully updated settings"
-            } else {
-                "nothing to change"
-            })
-            .description("The following channels will be watched:")
-            .field(
-                "channel",
-                channels
-                    .iter()
-                    .map(|channel| format!("<#{}>", channel.channel_id))
-                    .collect::<Vec<_>>()
-                    .join("\n"),
-                true,
-            )
-        })
-    })
-    .await?;
+    ctx.interaction
+        .edit_response(
+            ctx,
+            EditInteractionResponse::new().embed(
+                CreateEmbed::new()
+                    .title(if updated {
+                        "successfully updated settings"
+                    } else {
+                        "nothing to change"
+                    })
+                    .description("The following channels will be watched:")
+                    .field(
+                        "channel",
+                        channels
+                            .iter()
+                            .map(|channel| format!("<#{}>", channel.channel_id))
+                            .collect::<Vec<_>>()
+                            .join("\n"),
+                        true,
+                    ),
+            ),
+        )
+        .await?;
 
     Ok(())
 }
@@ -61,10 +64,11 @@ async fn watch_save(
 
     let guild_id = ctx
         .interaction
-        .guild_id()
+        .guild_id
+        .as_ref()
         .expect("failed to get guild id")
-        .0;
-    let channel = channel.id.0;
+        .get();
+    let channel = channel.id.get();
 
     let guild = entity::channel::ActiveModel::update_channel(guild_id, channel);
     let count = entity::channel::Entity::find_by_guild(guild_id)

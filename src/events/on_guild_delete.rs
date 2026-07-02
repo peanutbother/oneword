@@ -4,7 +4,7 @@ use entity::DatabaseConnection;
 use poise::serenity_prelude::UnavailableGuild;
 
 pub async fn handle(incomplete: &UnavailableGuild, db: &DatabaseConnection) -> Result<(), Error> {
-    let guild = incomplete.id.0;
+    let guild = incomplete.id.get();
 
     let channels = entity::channel::Entity::find_by_guild(guild)
         .all(db)

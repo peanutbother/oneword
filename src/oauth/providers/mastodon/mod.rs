@@ -1,15 +1,17 @@
-mod router;
-
 use self::router::{RequestToken, ResponseState};
-
 use super::common::{OauthProvider, ProviderRequirements};
 use crate::util::{env_var, Error};
-use axum::{async_trait, routing::get, Router};
+use axum::{routing::get, Router};
 use oauth2::{
-    basic::BasicClient, url::Url, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    ResponseType, Scope,
+    basic::BasicClient, url::Url, AuthUrl, ClientId, ClientSecret, CsrfToken, EndpointNotSet,
+    EndpointSet, RedirectUrl, ResponseType, Scope,
 };
 use serde::{Deserialize, Serialize};
+
+mod router;
+
+type Client =
+    BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointNotSet>;
 
 #[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize)]
@@ -27,7 +29,6 @@ struct StatusResponse {
 #[derive(Debug)]
 pub struct MastodonProvider;
 
-#[async_trait]
 impl OauthProvider<entity::oauth::Model> for MastodonProvider {
     fn get_url<F: FnOnce(String) -> String>(f: Option<F>) -> Option<String> {
         env_var::<String>("OAUTH_URL_BASE")
@@ -74,22 +75,18 @@ impl OauthProvider<entity::oauth::Model> for MastodonProvider {
 }
 
 impl MastodonProvider {
-    fn create_client(instance_url: String) -> Result<BasicClient, Error> {
+    fn create_client(instance_url: String) -> Result<Client, Error> {
         Ok(
             // create mastodon oauth client
-            BasicClient::new(
-                ClientId::new(env_var("MASTODON_CLIENT_ID")?),
-                Some(ClientSecret::new(env_var("MASTODON_CLIENT_SECRET")?)),
-                // AuthUrl::new(format!("{instance_url}/oauth/authorize"))?,
-                AuthUrl::new(format!("{instance_url}/oauth/authorize"))?,
-                None,
-            )
-            .set_redirect_uri(RedirectUrl::new(format!(
-                // use "urn:ietf:wg:oauth:2.0:oob" for manual code input
-                // "urn:ietf:wg:oauth:2.0:oob"
-                "{}/mastodon/callback",
-                env_var::<String>("OAUTH_URL_BASE")?
-            ))?),
+            BasicClient::new(ClientId::new(env_var("MASTODON_CLIENT_ID")?))
+                .set_client_secret(ClientSecret::new(env_var("MASTODON_CLIENT_SECRET")?))
+                .set_auth_uri(AuthUrl::new(instance_url + "/oauth/authorize")?)
+                .set_redirect_uri(RedirectUrl::new(format!(
+                    // use "urn:ietf:wg:oauth:2.0:oob" for manual code input
+                    // "urn:ietf:wg:oauth:2.0:oob"
+                    "{}/mastodon/callback",
+                    env_var::<String>("OAUTH_URL_BASE")?
+                ))?),
         )
     }
 

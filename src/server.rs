@@ -1,5 +1,5 @@
 use crate::{constants, oauth, util::Error};
-use axum::{routing::get, Extension, Json, Router, Server};
+use axum::{routing::get, Extension, Json, Router};
 use entity::DatabaseConnection;
 use serde::Serialize;
 use tokio::sync::OnceCell;
@@ -11,9 +11,8 @@ pub async fn init(db: OnceCell<DatabaseConnection>) -> Result<(), Error> {
     let app = oauth::router::init(app);
     let app = app.layer(Extension(db));
 
-    Server::bind(&"0.0.0.0:3000".parse()?)
-        .serve(app.into_make_service())
-        .await?;
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
     Ok(())
 }
 

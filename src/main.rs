@@ -21,9 +21,9 @@ async fn main() {
     );
 
     let db = db::init().await.expect("failed to setup database");
-    let bot = bot::init(db.clone()).expect("failed to setup bot");
+    let mut bot = bot::init(db.clone()).await.expect("failed to setup bot");
     let server = server::init(db);
-    let bot = bot.run_autosharded();
+    let bot = bot.start_autosharded();
 
     tokio::select! {
         server = server => {

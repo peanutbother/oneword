@@ -9,13 +9,15 @@ pub mod watcher;
 
 pub async fn pre_command<'a>(ctx: PoiseContext<'a>) {
     let ctx = into_application_ctx(ctx);
+    let db = crate::database!(ctx);
 
-    let db = crate::util::database(ctx);
     let guild_id = ctx
         .interaction
-        .guild_id()
+        .guild_id
+        .as_ref()
         .expect("failed to get guild id")
-        .0;
+        .get();
+
     let guild = entity::guild::ActiveModel {
         id: Set(guild_id.to_string()),
         active: Set(false),

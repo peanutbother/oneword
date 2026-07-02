@@ -4,12 +4,13 @@ use crate::{
     util::{env_var, Data, Error},
 };
 use entity::DatabaseConnection;
-use poise::{serenity_prelude::GatewayIntents, BoxFuture, Framework, FrameworkOptions};
+use poise::{
+    serenity_prelude::{self, Client, GatewayIntents},
+    BoxFuture, Framework, FrameworkOptions,
+};
 use tokio::sync::OnceCell;
 
-pub fn init(
-    database: OnceCell<DatabaseConnection>,
-) -> Result<poise::FrameworkBuilder<Data, Error>, Error> {
+pub async fn init(database: OnceCell<DatabaseConnection>) -> Result<Client, Error> {
     log::info!("initializing bot");
 
     let token: String = env_var("DISCORD_TOKEN")?;
@@ -25,8 +26,8 @@ pub fn init(
         ..Default::default()
     };
 
-    let bot = Framework::builder()
-        .token(token)
+    let framework = Framework::builder()
+        .options(options)
         .setup(
             move |ctx, _ready, framework| -> BoxFuture<'_, Result<Data, Error>> {
                 Box::pin(async move {
@@ -40,8 +41,11 @@ pub fn init(
                 })
             },
         )
-        .options(options)
-        .intents(intents);
+        .build();
 
-    Ok(bot)
+    let client = serenity_prelude::ClientBuilder::new(token, intents)
+        .framework(framework)
+        .await?;
+
+    Ok(client)
 }

@@ -1,9 +1,11 @@
 use crate::{
-    defer_ephemeral, require_admin,
-    util::{check_permissions, database, edit_reply, Context, Error},
+    database, defer_ephemeral, require_admin,
+    util::{check_permissions, Context, Error},
 };
 use entity::sea_orm::ActiveModelTrait;
-use poise::{serenity_prelude::ChannelId, AutocompleteChoice};
+use poise::serenity_prelude::{
+    AutocompleteChoice, ChannelId, CreateEmbed, EditInteractionResponse, MessageId,
+};
 
 /// Disable a channel for OneWord to look after
 #[poise::command(
@@ -24,20 +26,23 @@ pub async fn command(
     defer_ephemeral!(ctx);
 
     unwatch_save(ctx, channel).await?;
-    edit_reply(ctx, |b| {
-        b.embed(|e| {
-            //
-            e.title("successfully updated settings")
-                .description("the following channel will no longer be watched")
-                .field("channel", format!("<#{channel}>"), true)
-        })
-    })
-    .await?;
+
+    ctx.interaction
+        .edit_response(
+            ctx,
+            EditInteractionResponse::new().embed(
+                CreateEmbed::new()
+                    .title("successfully updated settings")
+                    .description("the following channel will no longer be watched")
+                    .field("channel", format!("<#{channel}>"), true),
+            ),
+        )
+        .await?;
     Ok(())
 }
 
 pub async fn unwatch_save(ctx: Context<'_>, id: u64) -> Result<(), Error> {
-    let db = database(ctx);
+    let db = database!(ctx);
     let entry = entity::channel::Entity::find_by_channel(id).one(db).await?;
 
     if let Some(entry) = entry {
@@ -46,18 +51,22 @@ pub async fn unwatch_save(ctx: Context<'_>, id: u64) -> Result<(), Error> {
 
         Ok(())
     } else {
-        Err(Error::from(format!("<#{id}> is not yet watched")))
+        Err(Error::from(format!(
+            "{} is not yet watched",
+            MessageId::new(id).link(ctx.channel_id(), ctx.guild_id())
+        )))
     }
 }
 
 async fn unwatch_autocomplete(
     ctx: Context<'_>,
     _partial: &str,
-) -> impl Iterator<Item = AutocompleteChoice<u64>> {
-    let db = database(ctx);
+) -> impl Iterator<Item = AutocompleteChoice> {
+    let db = database!(ctx);
     let guild = ctx
         .interaction
-        .guild_id()
+        .guild_id
+        .as_ref()
         .expect("cannot run this command outside of a guild");
 
     let channels = guild
@@ -65,7 +74,7 @@ async fn unwatch_autocomplete(
         .await
         .expect("failed to fetch guild channels");
 
-    let connections = entity::channel::Entity::find_by_guild(guild.0)
+    let connections = entity::channel::Entity::find_by_guild(guild.get())
         .all(db)
         .await
         .expect("failed to get database entries");
@@ -77,9 +86,6 @@ async fn unwatch_autocomplete(
 
         let name = format!("#{}", channel.name);
 
-        AutocompleteChoice {
-            name,
-            value: channel.id.0,
-        }
+        AutocompleteChoice::new(name, channel.id.get())
     })
 }
