@@ -48,3 +48,6 @@ This bot is running inside docker and assumes certain environment variables to b
 
 To deploy the container either pull `bricksoft/oneword-dc` or build it locally by `docker build .` and then run it:
 > docker run -d -v PATH_TO_YOUR_DATA:/data -e DISCORD_TOKEN=YOUR_TOKEN_HERE bricksoft/oneword-dc:latest
+
+Alternatively you can build it using `nix build` and run the resulting binary.
+This repository also provides the necessary build environment / devshell if you want to use direnv, just copy the sample `.env.sample` and edit its values.

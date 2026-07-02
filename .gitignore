@@ -1,5 +1,6 @@
 /data
 /target
+/result
+.direnv
 .env
 .DS_STORE
-Cargo.lock
