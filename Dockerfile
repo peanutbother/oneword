@@ -1,4 +1,4 @@
-FROM docker.io/rust:1-alpine AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /build
 
 FROM chef AS planner
