@@ -7,6 +7,13 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /build/recipe.json recipe.json
+COPY Cargo.toml Cargo.lock ./
+COPY entity/Cargo.toml ./entity/Cargo.toml
+COPY migration/Cargo.toml ./migration/Cargo.toml
+RUN mkdir -p src entity/src migration/src && \
+    echo "fn main() {}" > src/main.rs && \
+    touch entity/src/lib.rs && \
+    touch migration/src/lib.rs
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
