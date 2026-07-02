@@ -46,7 +46,7 @@ This bot is running inside docker and assumes certain environment variables to b
 - RUST_LOG: optinal - overrided to `error,oneword=info` in production, allows you to set more verbose logging if needed
 - DISCORD_TOKEN: required, your discord api token
 
-To deploy the container either pull `bricksoft/oneword-dc` or build it locally by `docker build .` and then run it:
+To deploy the container either pull `bricksoft/oneword-dc` or `ghcr.io/peanutbother/oneword` or build it locally by `docker build .` and then run it:
 > docker run -d -v PATH_TO_YOUR_DATA:/data -e DISCORD_TOKEN=YOUR_TOKEN_HERE bricksoft/oneword-dc:latest
 
 Alternatively you can build it using `nix build` and run the resulting binary.
