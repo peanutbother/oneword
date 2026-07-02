@@ -4,12 +4,21 @@ pub use crate::generated::guild::*;
 use crate::generated::prelude::Guild;
 
 impl ActiveModel {
-    pub fn update_guild(guild: u64, active: bool, retain_messages: bool, oauth: bool) -> Self {
+    pub fn update_guild(
+        guild: u64,
+        active: bool,
+        retain_messages: bool,
+        oauth: bool,
+        hide_user: bool,
+        hide_deletion_info: bool,
+    ) -> Self {
         Self {
             id: Set(guild.to_string()),
             active: Set(active),
             retain_messages: Set(retain_messages),
             oauth: Set(oauth),
+            hide_user: Set(hide_user),
+            hide_deletion_info: Set(hide_deletion_info),
         }
     }
 }

@@ -10,6 +10,8 @@ pub struct Model {
     pub active: bool,
     pub retain_messages: bool,
     pub oauth: bool,
+    pub hide_user: bool,
+    pub hide_deletion_info: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

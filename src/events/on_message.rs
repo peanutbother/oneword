@@ -35,6 +35,12 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
         .one(db)
         .await?;
 
+    let Model {
+        hide_user,
+        hide_deletion_info,
+        ..
+    } = guild_safe(db, guild_id).await?;
+
     if let Some(config) = config {
         // channel is set active
         let config: entity::channel::Model = config.into();
@@ -123,12 +129,32 @@ pub async fn handle(ctx: &Context, data: &Data, message: &Message) -> Result<(),
                                 ),
                             ])
                             .footer(
-                                CreateEmbedFooter::new(format!(
-                                    "Story Messages will {}be deleted | ended by {}",
-                                    if retain_messages { "not " } else { "" },
-                                    message.author.display_name()
-                                    }
-                                ))
+                                CreateEmbedFooter::new(if hide_deletion_info && hide_user {
+                                    "".to_owned()
+                                } else {
+                                    format!(
+                                        "{}{}",
+                                        if !hide_deletion_info {
+                                            format!(
+                                                "Story Messages will {}be deleted{}",
+                                                if retain_messages { "not " } else { "" },
+                                                if !hide_user { " | " } else { "" }
+                                            )
+                                        } else {
+                                            "".to_owned()
+                                        },
+                                        if !hide_user {
+                                            format!(
+                                                "ended by {}",
+                                                message.author.display_name() // "ended by {}#{}",
+                                                                              // message.author.name,
+                                                                              // message.author.discriminator.as_ref().unwrap()
+                                            )
+                                        } else {
+                                            "".to_owned()
+                                        }
+                                    )
+                                })
                                 .icon_url(
                                     message.author.avatar_url().unwrap_or_else(|| {
                                         ctx.cache.current_user().default_avatar_url()

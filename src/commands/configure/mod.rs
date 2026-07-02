@@ -3,6 +3,7 @@ use crate::{
     util::{check_permissions, Context, Error},
 };
 
+mod footer;
 mod mastodon;
 
 /// Configure bot
@@ -11,7 +12,7 @@ mod mastodon;
     ephemeral,
     guild_only,
     category = "setup",
-    subcommands("mastodon::command")
+    subcommands("mastodon::command", "footer::command")
     // required_permissions = "ADMINISTRATOR",
 )]
 pub async fn configure(ctx: Context<'_>) -> Result<(), Error> {
